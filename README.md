@@ -33,3 +33,10 @@ douche bag app
 			Allow from all
 		</Directory>
 </VirtualHost>
+
+REST SERVER
+
+Installation:
+1. Update laravel: php composer update|install
+2. DB migrations : php artisan migrate
+3. DB Seeds: php artisan db:seed

@@ -11,7 +11,17 @@ class DatabaseSeeder extends Seeder {
 	{
 		Eloquent::unguard();
 
-		// $this->call('UserTableSeeder');
+		$this->call('DoucheJarTableSeeder');
+		$this->command->info('DoucheJar table seeded!');
 	}
+}
 
+class DoucheJarTableSeeder extends Seeder
+{
+	
+	public function run()
+	{
+		DB::table('douchejar')->delete();
+		Douchejar::create(array('name' => 'Bad Words', 'description' => 'When someone says %$#@', 'multiplier' => 1));
+	}
 }
