@@ -18,6 +18,7 @@ class CreateDouchejarUserTable extends Migration {
 			$table->integer('user_id')->unsigned();
 			$table->integer('douchejar_id')->unsigned();
 			$table->smallInteger('point')->unsigned();
+			$table->string('the_thing', 150);
 			$table->timestamps();
 			$table->softDeletes();
 		});

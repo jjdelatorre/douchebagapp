@@ -37,6 +37,6 @@ douche bag app
 REST SERVER
 
 Installation:
-1. Update laravel: php composer update|install
+1. Update laravel: php composer update or install
 2. DB migrations : php artisan migrate
 3. DB Seeds: php artisan db:seed

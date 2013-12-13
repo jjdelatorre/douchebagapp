@@ -21,7 +21,7 @@ class User extends Eloquent implements UserInterface, RemindableInterface {
 
 	public function douches()
     {
-    	return $this->belongsToMany('Douchejar', 'DouchejarUser', 'user_id', 'douchejar_id')->withPivot('point')->withTimestamps();
+    	return $this->belongsToMany('Douchejar')->withPivot('point')->withTimestamps();
     }
 
 	/**
