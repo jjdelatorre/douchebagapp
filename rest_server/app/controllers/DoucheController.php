@@ -12,9 +12,9 @@ class DoucheController extends \BaseController {
 		$users = DB::select('SELECT user.id, user.username, (SELECT the_thing FROM douchejar_user where douchejar_user.user_id = user.id ORDER BY created_at DESC LIMIT 1) as last_thing, SUM(douchejar_user.point) AS points FROM USER JOIN douchejar_user ON user.id = douchejar_user.user_id  GROUP BY user.id ORDER BY points  DESC');
 
 		if (count($users) > 0) {
-			return Response::json(array($users), 200);
+			return Response::json($users, 200);
 		} else {
-			return Response::json(array(array()), 404);
+			return Response::json(array(), 404);
 		}
 		
 	}

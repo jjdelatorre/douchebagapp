@@ -1,6 +1,6 @@
 angular.module('douchejarApp', ['ngRoute', 'douchejarServices'])
  
-.config(function($routeProvider) {
+.config(function($routeProvider, $httpProvider) {
   $routeProvider
     .when('/', {
       controller:'ListCtrl',
@@ -19,22 +19,12 @@ angular.module('douchejarApp', ['ngRoute', 'douchejarServices'])
     });
 })
  
-.controller('ListCtrl', function($scope, User) {
-  /*$scope.users = [
-      {'name': 'Nexus S',
-       'last_douche': 'Fast just got faster with Nexus S.',
-       'points': 5},
-      {'name': 'Motorola XOOM™ with Wi-Fi',
-       'last_douche': 'The Next, Next Generation tablet.',
-       'points': 10},
-      {'name': 'MOTOROLA XOOM™',
-       'last_douche': 'The Next, Next Generation tablet.',
-      'points': 2}
-    ];*/
-
+.controller('ListCtrl', ['$scope', 'User', function($scope, User) {
     $scope.users = User.query();
-}) 
+}]) 
 .controller('CreateCtrl', function($scope, $location, $timeout) {
+
+  //$scope.asda.get
   /*$scope.save = function() {
     Projects.add($scope.project, function() {
       $timeout(function() { $location.path('/'); });
@@ -68,6 +58,8 @@ angular.module('douchejarApp', ['ngRoute', 'douchejarServices'])
     //});
 });
 
+//@TODO :: angular.module('YourApp', []).config(function($httpProvider) { $httpProvider.defaults.useXDomain = true; delete $httpProvider.defaults.headers.common['X-Requested-With'];}) 
+//try wiht a $httpRequest..no Restful
 
 /*SERVICES*/
 var douchejarServices = angular.module('douchejarServices', ['ngResource']);
