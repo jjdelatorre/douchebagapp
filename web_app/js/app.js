@@ -1,4 +1,4 @@
-angular.module('douchejarApp', ['ngRoute', 'douchejarServices'])
+angular.module('douchejarApp', ['ngRoute', 'douchejarServices', 'ui.bootstrap'])
  
 .config(function($routeProvider, $httpProvider) {
   $routeProvider
@@ -7,20 +7,44 @@ angular.module('douchejarApp', ['ngRoute', 'douchejarServices'])
       templateUrl:'list.html'
     })
     .when('/list/:userId', {
-      controller:'EditCtrl',
+      controller:'detailViewCtrl',
       templateUrl:'detail.html'
     })
     .when('/new/user/', {
-      controller:'CreateCtrl',
+      controller:'CreateUserCtrl',
       templateUrl:'detail.html'
     })
     .otherwise({
       redirectTo:'/'
     });
 })
- 
-.controller('ListCtrl', ['$scope', 'User', function($scope, User) {
-    $scope.users = User.query();
+
+.controller('ListCtrl', ['$scope', '$filter', 'User', function($scope, $filter, User) {
+    $scope.usernames = [];
+
+    $scope.users = User.query(function() {
+        angular.forEach($scope.users, function(value, key){
+          this.push(value.username);
+        }, $scope.usernames);
+    });
+    
+    $scope.addDouche = function() {
+        //find Users by username, if not exist flash a msg. If exist call API to update and .get the item and update the points and last_thing
+      var found = $filter('filter')($scope.users, {username: $scope.new_douche.username});
+      if (found.length == 1) {
+
+          found[0].points = parseInt(found[0].points) + 10;
+          found[0].last_thing = $scope.new_douche.the_thing;
+
+          /*var douche_user = new User({userid, type, the thig}) 
+          douche_user.$save();*/
+
+        console.log(found);
+      } else {
+        //Flash alert
+      }    
+
+    };
 }]) 
 .controller('CreateCtrl', function($scope, $location, $timeout) {
 
@@ -31,7 +55,7 @@ angular.module('douchejarApp', ['ngRoute', 'douchejarServices'])
     });
   };*/
 }) 
-.controller('EditCtrl',
+.controller('detailViewCtrl',
   function($scope, $location, $routeParams) {
  
     /*var projectUrl = fbURL + $routeParams.projectId;
@@ -58,15 +82,13 @@ angular.module('douchejarApp', ['ngRoute', 'douchejarServices'])
     //});
 });
 
-//@TODO :: angular.module('YourApp', []).config(function($httpProvider) { $httpProvider.defaults.useXDomain = true; delete $httpProvider.defaults.headers.common['X-Requested-With'];}) 
-//try wiht a $httpRequest..no Restful
-
 /*SERVICES*/
 var douchejarServices = angular.module('douchejarServices', ['ngResource']);
  
 douchejarServices.factory('User', ['$resource',
   function($resource){
     return $resource('http://api.douchebag.dev/douchejar/', {}, {
-      query: {method:'GET', params:{}, isArray:true}
+      query: {method:'GET', params:{}, isArray:true},
+
     });
 }]);
