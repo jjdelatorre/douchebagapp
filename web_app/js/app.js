@@ -19,76 +19,71 @@ angular.module('douchejarApp', ['ngRoute', 'douchejarServices', 'ui.bootstrap'])
     });
 })
 
-.controller('ListCtrl', ['$scope', '$filter', 'User', function($scope, $filter, User) {
+.controller('ListCtrl', ['$rootScope', '$scope', '$filter', 'UserResource', function($rootScope, $scope, $filter, UserResource) {
     $scope.usernames = [];
 
-    $scope.users = User.query(function() {
+    var points = 0;
+    $scope.users = UserResource.query(function() {
         angular.forEach($scope.users, function(value, key){
           this.push(value.username);
+          points += parseInt(value.points);
         }, $scope.usernames);
+
+        $rootScope.total_points = points;
+
     });
     
     $scope.addDouche = function() {
-        //find Users by username, if not exist flash a msg. If exist call API to update and .get the item and update the points and last_thing
-      var found = $filter('filter')($scope.users, {username: $scope.new_douche.username});
-      if (found.length == 1) {
+        if($scope.new_douche_form.$error.required) {
+            alert('All fields required');
+            return;
+        }
 
-          found[0].points = parseInt(found[0].points) + 10;
-          found[0].last_thing = $scope.new_douche.the_thing;
+        var found = $filter('filter')($scope.users, {username: $scope.new_douche.username});
+        if (found.length == 1) {
+            var selected_user = found[0];
+            var douche_user = new UserResource({
+                                                user_id: selected_user.id, 
+                                                the_thing: $scope.new_douche.the_thing, 
+                                                douche_type: $scope.new_douche.type
+                                            }); 
+            douche_user.$save({}, 
+                function success() {
+                    selected_user.last_thing = douche_user.last_thing;
+                    selected_user.points = douche_user.points;
 
-          /*var douche_user = new User({userid, type, the thig}) 
-          douche_user.$save();*/
-
-        console.log(found);
-      } else {
-        //Flash alert
-      }    
+                    $('#new_douche').modal('hide');
+                    $scope.new_douche.the_thing = null;
+                    $scope.new_douche.username = null;
+                    
+                    $rootScope.total_points += parseInt(1 * douchejar_multiplier);
+                }, function err(error) {
+                    alert('Invalid data provided / Server Error. StatusCode :: ' + error.status);
+                });
+        } else {
+            alert('Invalid username !');
+        }    
 
     };
 }]) 
 .controller('CreateCtrl', function($scope, $location, $timeout) {
 
-  //$scope.asda.get
-  /*$scope.save = function() {
-    Projects.add($scope.project, function() {
-      $timeout(function() { $location.path('/'); });
-    });
-  };*/
 }) 
 .controller('detailViewCtrl',
   function($scope, $location, $routeParams) {
  
-    /*var projectUrl = fbURL + $routeParams.projectId;
-    var bindToProject = angularFire(projectUrl, $scope, 'remote', {});
- 
-    bindToProject.then(function() {
- 
-      $scope.project = angular.copy($scope.remote);
-      $scope.project.$id = $routeParams.projectId;
- 
-      $scope.isClean = function() {
-        return angular.equals($scope.remote, $scope.project);
-      }
- 
-      $scope.destroy = function() {
-        $scope.remote = null;
-        $location.path('/');
-      };
- 
-      $scope.save = function() {
-        $scope.remote = angular.copy($scope.project);
-        $location.path('/');
-      };*/
-    //});
 });
 
 /*SERVICES*/
 var douchejarServices = angular.module('douchejarServices', ['ngResource']);
  
-douchejarServices.factory('User', ['$resource',
+douchejarServices.factory('UserResource', ['$resource',
   function($resource){
     return $resource('http://api.douchebag.dev/douchejar/', {}, {
       query: {method:'GET', params:{}, isArray:true},
 
     });
 }]);
+
+/*GLOBAL SETTINGS*/
+var douchejar_multiplier = 1;

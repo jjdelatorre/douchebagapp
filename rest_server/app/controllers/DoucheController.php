@@ -26,7 +26,51 @@ class DoucheController extends \BaseController {
 	 */
 	public function store()
 	{
-		//
+		$rules = array(
+					'user_id' => 'required|alpha_dash|exists:user,id',
+					'douche_type' => 'required|exists:douchejar,id',
+					'the_thing' => 'required',
+
+			);
+
+		$validator = Validator::make(Input::only('user_id', 'douche_type', 'the_thing'), $rules);
+
+		if (! $validator->fails()) {
+			
+			try {
+				$douchejar = Douchejar::find(Input::get('douche_type'));
+
+				$new_douchejar_user = DouchejarUser::create(array(
+					'user_id' => Input::get('user_id'),
+					'douchejar_id' => Input::get('douche_type'),
+					'point' => $douchejar->multiplier,
+					'the_thing' => Input::get('the_thing'),
+					)
+				);		
+
+			return Response::json(array(
+											'id' => $new_douchejar_user->user->id,
+											'username' => $new_douchejar_user->user->username,
+											'last_thing' => $new_douchejar_user->the_thing,
+											'points' => DB::table('douchejar_user')->where('user_id', $new_douchejar_user->user->id)->sum('point'),
+											), 201);
+				
+			} catch (Exception $e) {
+				return Response::json(array(
+											'id' => '',
+											'username' => '',
+											'last_thing' => '',
+											'points' => ''
+											), 500);	
+			}
+		} else {
+			return Response::json(array(
+										'id' => '',
+										'username' => '',
+										'last_thing' => '',
+										'points' => ''
+										), 400);	
+		}
 	}
 
 	/**
