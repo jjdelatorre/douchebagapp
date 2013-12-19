@@ -6,7 +6,7 @@ angular.module('douchejarApp', ['ngRoute', 'douchejarServices', 'ui.bootstrap'])
       controller:'ListCtrl',
       templateUrl:'list.html'
     })
-    .when('/list/:userId', {
+    .when('/list/:username/:userId', {
       controller:'detailViewCtrl',
       templateUrl:'detail.html'
     })
@@ -55,7 +55,7 @@ angular.module('douchejarApp', ['ngRoute', 'douchejarServices', 'ui.bootstrap'])
                     $('#new_douche').modal('hide');
                     $scope.new_douche.the_thing = null;
                     $scope.new_douche.username = null;
-                    
+
                     $rootScope.total_points += parseInt(1 * douchejar_multiplier);
                 }, function err(error) {
                     alert('Invalid data provided / Server Error. StatusCode :: ' + error.status);
@@ -69,19 +69,39 @@ angular.module('douchejarApp', ['ngRoute', 'douchejarServices', 'ui.bootstrap'])
 .controller('CreateCtrl', function($scope, $location, $timeout) {
 
 }) 
-.controller('detailViewCtrl',
-  function($scope, $location, $routeParams) {
- 
-});
+.controller('detailViewCtrl', ['$rootScope', '$scope', '$location', '$routeParams', 'UserResource',  
+    function($rootScope, $scope, $location, $routeParams, UserResource) {
+
+    $scope.username = $routeParams.username;    
+    var total_points = 0;
+    $scope.user_douchejars = UserResource.get({Id: $routeParams.userId}, function() {
+        angular.forEach($scope.user_douchejars, function(value, key){
+          total_points += parseInt(value.point);
+        }, null);
+        $scope.total_points = parseInt(total_points);
+    });
+
+    $scope.destroy = function(douchejar_user) {
+        var restResource = new UserResource();
+        UserResource.delete({Id: douchejar_user.id}, function() {
+            $scope.user_douchejars.splice($scope.user_douchejars.indexOf(douchejar_user), 1);
+            $scope.total_points -= parseInt(douchejar_user.point);
+        });
+    }
+
+}]);
+
+
 
 /*SERVICES*/
 var douchejarServices = angular.module('douchejarServices', ['ngResource']);
  
 douchejarServices.factory('UserResource', ['$resource',
   function($resource){
-    return $resource('http://api.douchebag.dev/douchejar/', {}, {
+    return $resource('http://api.douchebag.dev/douchejar/:Id', {}, {
       query: {method:'GET', params:{}, isArray:true},
-
+      get:    {method:'GET', isArray:true},
+      delete: {method:'DELETE', isArray:true},
     });
 }]);
 

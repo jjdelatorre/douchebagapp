@@ -81,7 +81,8 @@ class DoucheController extends \BaseController {
 	 */
 	public function show($id)
 	{
-		//
+		$user_douchejars = DouchejarUser::where('user_id', '=', $id)->join('douchejar', 'douchejar_user.douchejar_id', '=', 'douchejar.id')->get();
+		return Response::json($user_douchejars->toArray(), 200);	
 	}
 
 	/**
@@ -103,7 +104,8 @@ class DoucheController extends \BaseController {
 	 */
 	public function destroy($id)
 	{
-		//
+		DouchejarUser::find($id)->delete();
+		return Response::json(array($id), 200);
 	}
 
 }
