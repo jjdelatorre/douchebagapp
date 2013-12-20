@@ -1,7 +1,6 @@
 <?php
 
 class DoucheController extends \BaseController {
-
 	/**
 	 * Display a listing of the resource.
 	 *
@@ -9,7 +8,7 @@ class DoucheController extends \BaseController {
 	 */
 	public function index()
 	{
-		$users = DB::select('SELECT user.id, user.username, (SELECT the_thing FROM douchejar_user where douchejar_user.user_id = user.id ORDER BY created_at DESC LIMIT 1) as last_thing, SUM(douchejar_user.point) AS points FROM USER JOIN douchejar_user ON user.id = douchejar_user.user_id  GROUP BY user.id ORDER BY points  DESC');
+		$users = DB::select('SELECT user.id, user.username, (SELECT the_thing FROM douchejar_user where douchejar_user.user_id = user.id ORDER BY created_at DESC LIMIT 1) as the_thing, (SELECT SUM(douchejar_user.point) FROM douchejar_user where douchejar_user.user_id = user.id AND deleted_at IS NULL) AS points FROM USER JOIN douchejar_user ON user.id = douchejar_user.user_id GROUP BY user.id ORDER BY points  DESC');
 
 		if (count($users) > 0) {
 			return Response::json($users, 200);
@@ -43,23 +42,29 @@ class DoucheController extends \BaseController {
 				$new_douchejar_user = DouchejarUser::create(array(
 					'user_id' => Input::get('user_id'),
 					'douchejar_id' => Input::get('douche_type'),
-					'point' => $douchejar->multiplier,
+					'point' => 1 * $douchejar->multiplier,
 					'the_thing' => Input::get('the_thing'),
 					)
 				);		
 
 			return Response::json(array(
-											'id' => $new_douchejar_user->user->id,
+											'id' => $new_douchejar_user->id,
+											'user_id' => $new_douchejar_user->user->id,
+											'douchejar_id' => Input::get('douche_type'),
 											'username' => $new_douchejar_user->user->username,
-											'last_thing' => $new_douchejar_user->the_thing,
-											'points' => DB::table('douchejar_user')->where('user_id', $new_douchejar_user->user->id)->sum('point'),
+											'the_thing' => $new_douchejar_user->the_thing,
+											'point' => $new_douchejar_user->point,
+											'multiplier' => $new_douchejar_user->douchejar->multiplier,
+											'created_at' => $new_douchejar_user->created_at->toDateTimeString(),
+											'name' => $new_douchejar_user->douchejar->name,
+											'points' => DB::table('douchejar_user')->where('user_id', $new_douchejar_user->user->id)->whereNull('deleted_at')->sum('point'),
 											), 201);
 				
 			} catch (Exception $e) {
 				return Response::json(array(
 											'id' => '',
 											'username' => '',
-											'last_thing' => '',
+											'the_thing' => '',
 											'points' => ''
 											), 500);	
 			}
@@ -67,7 +72,7 @@ class DoucheController extends \BaseController {
 			return Response::json(array(
 										'id' => '',
 										'username' => '',
-										'last_thing' => '',
+										'the_thing' => '',
 										'points' => ''
 										), 400);	
 		}
@@ -81,7 +86,7 @@ class DoucheController extends \BaseController {
 	 */
 	public function show($id)
 	{
-		$user_douchejars = DouchejarUser::where('user_id', '=', $id)->join('douchejar', 'douchejar_user.douchejar_id', '=', 'douchejar.id')->get();
+		$user_douchejars = DouchejarUser::select('douchejar_user.id', 'user_id', 'point', 'the_thing', 'douchejar_user.created_at', 'dj.name')->where('douchejar_user.user_id', '=', $id)->join('douchejar as dj', 'douchejar_user.douchejar_id', '=', 'dj.id')->get();
 		return Response::json($user_douchejars->toArray(), 200);	
 	}
 

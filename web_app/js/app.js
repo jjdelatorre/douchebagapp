@@ -49,14 +49,14 @@ angular.module('douchejarApp', ['ngRoute', 'douchejarServices', 'ui.bootstrap'])
                                             }); 
             douche_user.$save({}, 
                 function success() {
-                    selected_user.last_thing = douche_user.last_thing;
+                    selected_user.the_thing = douche_user.the_thing;
                     selected_user.points = douche_user.points;
 
                     $('#new_douche').modal('hide');
                     $scope.new_douche.the_thing = null;
                     $scope.new_douche.username = null;
 
-                    $rootScope.total_points += parseInt(1 * douchejar_multiplier);
+                    $rootScope.total_points += parseInt(1 * douche_user.multiplier);
                 }, function err(error) {
                     alert('Invalid data provided / Server Error. StatusCode :: ' + error.status);
                 });
@@ -81,10 +81,40 @@ angular.module('douchejarApp', ['ngRoute', 'douchejarServices', 'ui.bootstrap'])
         $scope.total_points = parseInt(total_points);
     });
 
+    $scope.addDouche = function() {
+        if($scope.new_douche_form.$error.required) {
+            alert('All fields required');
+            return;
+        }
+
+        var douche_user = new UserResource({
+                                            user_id: $routeParams.userId, 
+                                            the_thing: $scope.new_douche.the_thing, 
+                                            douche_type: $scope.new_douche.type
+                                        }); 
+        douche_user.$save({}, 
+            function success() {
+
+                $('#new_douche').modal('hide');
+                $scope.new_douche.the_thing = null;
+                $scope.new_douche.username = null;
+
+                $scope.user_douchejars.push(douche_user);
+
+                $rootScope.total_points += parseInt(1 * douche_user.multiplier);
+                $scope.total_points = douche_user.points;
+
+            }, function err(error) {
+                alert('Invalid data provided / Server Error. StatusCode :: ' + error.status);
+            }
+        );
+    };
+
     $scope.destroy = function(douchejar_user) {
         var restResource = new UserResource();
         UserResource.delete({Id: douchejar_user.id}, function() {
             $scope.user_douchejars.splice($scope.user_douchejars.indexOf(douchejar_user), 1);
+            $rootScope.total_points -= parseInt(douchejar_user.point);
             $scope.total_points -= parseInt(douchejar_user.point);
         });
     }
